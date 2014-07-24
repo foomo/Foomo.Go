@@ -19,18 +19,13 @@
 
 namespace Foomo\Go;
 use Foomo\Services\Mock\Nest\Bird;
-use Foomo\Services\Reflection\ServiceObjectType;
-use Schild\Utils\Log\Event;
-use Schild\Utils\Log\Vo\User;
-use Schild\Utils\Log\Vo\Item;
-use Schild\Utils\Log\Vo\Product;
 /**
  * @link www.foomo.org
  * @license www.gnu.org/licenses/lgpl.txt
  */
 class UtilsTest extends \PHPUnit_Framework_TestCase
 {
-	public function testCrap()
+	public function testWriteStructsForValueObjects()
 	{
 		Utils::writeStructsForValueObjects(
 			[
@@ -39,16 +34,9 @@ class UtilsTest extends \PHPUnit_Framework_TestCase
 				'Schild\\Utils\\Log\\Vo\\Product',
 				'Schild\\Utils\\Log\\Vo\\User',
 			],
-			'git.bestbytes.net/Project-Data-Flow/log',
+			$path = 'git.bestbytes.net/Project-Data-Flow/log',
 			Module::getVarDir()
 		);
-		Utils::writeStructsForValueObjects(
-			[
-				'Schild\\Vo\\Persistence\\Product'
-			],
-			'git.bestbytes.net/Project-Data-Flow/shop',
-			Module::getVarDir()
-		);
-
+		$this->assertFileExists(Module::getVarDir() . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . $path . DIRECTORY_SEPARATOR . 'value_objects.go');
 	}
 }

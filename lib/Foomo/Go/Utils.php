@@ -31,7 +31,7 @@ class Utils extends \Foomo\Modules\ModuleBase
 	 *
 	 * @param string[] $voClassNames php class names
 	 * @param string $goPackage go package name
-	 * @param string $goPath go sr
+	 * @param string $goPath go path
 	 */
 	public static function writeStructsForValueObjects(array $voClassNames, $goPackage, $goPath)
 	{
@@ -50,6 +50,5 @@ class Utils extends \Foomo\Modules\ModuleBase
 		file_put_contents($goFile, $src);
 		$cmd = \Foomo\CliCall::create('gofmt', ['-w=true', $goFile]);
 		$cmd->execute();
-		echo $cmd->report;
 	}
 }

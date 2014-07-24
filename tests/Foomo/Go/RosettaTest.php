@@ -27,15 +27,28 @@ use Foomo\Services\Reflection\ServiceObjectType;
  */
 class RosettaTest extends \PHPUnit_Framework_TestCase
 {
-	public static function testGetRecursionsInType()
+	public function testGetRecursionsInType()
 	{
-		echo implode(', ', Rosetta::getRecursionsInType(new ServiceObjectType("Foomo\\Services\\Mock\\Nest\\Bird")));
+		$expected = [
+			'Foomo\\Services\\Mock\\Nest\\Bird',
+			'Foomo\\Services\\Mock\\Nest'
+		];
+		$actual = Rosetta::getRecursionsInType(new ServiceObjectType('Foomo\\Services\\Mock\\Nest\\Bird'));
+		$this->assertTrue(sort($actual) && sort($expected));
+		$this->assertEquals($expected, $actual);
 	}
-	public static function testPhpVoToGoStructSource()
+	public function testPhpVoToGoStructSource()
 	{
-		$known = Rosetta::getRecursionsInType(new ServiceObjectType("Foomo\\Services\\Mock\\Nest\\Bird"));
+		$known = Rosetta::getRecursionsInType(new ServiceObjectType('Foomo\\Services\\Mock\\Nest\\Bird'));
+		$src = 'package test';
 		foreach($known as $className) {
-			echo Rosetta::phpVoToGoStructSource($className, $known);
+			$this->assertNotEmpty($src .= Rosetta::phpVoToGoStructSource($className, $known));
 		}
+		$tmpFile = tempnam(Module::getTempDir(), 'go-test') . '.go';
+		file_put_contents($tmpFile, $src);
+		$cmd = \Foomo\CliCall::create('gofmt', ['-w=true', $tmpFile]);
+		$cmd->execute();
+		unlink($tmpFile);
+		$this->assertEquals(0, $cmd->exitStatus);
 	}
 }
