@@ -18,7 +18,6 @@
  */
 
 namespace Foomo\Go;
-use Foomo\Services\Mock\Nest\Bird;
 /**
  * @link www.foomo.org
  * @license www.gnu.org/licenses/lgpl.txt
@@ -29,14 +28,12 @@ class UtilsTest extends \PHPUnit_Framework_TestCase
 	{
 		Utils::writeStructsForValueObjects(
 			[
-				'Schild\\Utils\\Log\\Event',
-				'Schild\\Utils\\Log\\Vo\\Item',
-				'Schild\\Utils\\Log\\Vo\\Product',
-				'Schild\\Utils\\Log\\Vo\\User',
+				'Foomo\\Services\\Mock\\FunkyStar',
+				'Foomo\\Services\\Mock\\Nest\\Bird'
 			],
-			$path = 'git.bestbytes.net/Project-Data-Flow/log',
+			$goPackage = 'git.bestbytes.net/test',
 			Module::getVarDir()
 		);
-		$this->assertFileExists(Module::getVarDir() . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . $path . DIRECTORY_SEPARATOR . 'value_objects.go');
+		$this->assertFileExists(Module::getVarDir() . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . $goPackage . DIRECTORY_SEPARATOR . 'value_objects.go');
 	}
 }
