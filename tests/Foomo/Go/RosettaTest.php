@@ -40,15 +40,15 @@ class RosettaTest extends \PHPUnit_Framework_TestCase
 	public function testPhpVoToGoStructSource()
 	{
 		$known = Rosetta::getRecursionsInType(new ServiceObjectType('Foomo\\Services\\Mock\\Nest\\Bird'));
-		$src = 'package test';
+		$src = 'package test' . PHP_EOL;
 		foreach($known as $className) {
 			$this->assertNotEmpty($src .= Rosetta::phpVoToGoStructSource($className, $known));
 		}
-		$tmpFile = tempnam(Module::getTempDir(), 'go-test') . '.go';
+		$tmpFile = Module::getTempDir() . DIRECTORY_SEPARATOR .  'go-test.go';
 		file_put_contents($tmpFile, $src);
 		$cmd = \Foomo\CliCall::create('gofmt', ['-w=true', $tmpFile]);
 		$cmd->execute();
-		unlink($tmpFile);
+		//unlink($tmpFile);
 		$this->assertEquals(0, $cmd->exitStatus);
 	}
 }

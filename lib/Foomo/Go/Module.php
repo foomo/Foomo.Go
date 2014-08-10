@@ -18,6 +18,7 @@
  */
 
 namespace Foomo\Go;
+use Foomo\Modules\MakeResult;
 
 /**
  * @link www.foomo.org
@@ -75,5 +76,28 @@ class Module extends \Foomo\Modules\ModuleBase
 			// a database configuration
 			// \Foomo\Modules\Resource\Config::getResource('yourModule', 'db')
 		);
+	}
+	public static function make($target, MakeResult $result)
+	{
+		switch($target) {
+			case 'all':
+				$goPath = self::getBaseDir('go');
+				if(file_exists($goPath) && is_dir($goPath) && is_writable($goPath)) {
+					\Foomo\Go\Utils::writeStructsForValueObjects(
+						[
+							'Foomo\\Services\\RPC\\Protocol\\Call\\MethodCall',
+							'Foomo\\Services\\RPC\\Protocol\\Reply\\MethodReply'
+						],
+						$package = 'github.com/foomo/gofoomo/services/rpc',
+						$goPath
+					);
+					$result->addEntry('wrote go value object sources');
+				} else {
+					$result->addEntry('can not write go value object sources');
+				}
+				break;
+			default:
+				parent::make($target, $result);
+		}
 	}
 }

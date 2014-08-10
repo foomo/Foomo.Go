@@ -57,6 +57,7 @@ class Rosetta
 		}
 		$type = new ServiceObjectType($voClassName);
 		$src = '// from php class ' . $type->type . PHP_EOL;
+		self::addComment($type->phpDocEntry, $src, 0);
 		self::addStruct('type ' . self::getGoStructName($voClassName), $src, $type, $withKnownClassNames, 0);
 		$withKnownClassNames[] = $type->type;
 		return $src;
@@ -68,7 +69,7 @@ class Rosetta
 	}
 	private static function addStruct($name, &$src, ServiceObjectType $type, &$withKnownClassNames, $indent)
 	{
-		$prefix = $name . ' ' . ($type->isArrayOf ? '[]' : '');
+		$prefix = ($indent > 0 ? ucfirst($name) :  $name) . ' ' . ($type->isArrayOf ? '[]' : '');
 		if(in_array($type->type, $withKnownClassNames)) {
 			self::addLineToSrc(
 				$src,
@@ -78,22 +79,35 @@ class Rosetta
 		} else {
 			self::addLineToSrc($src, $prefix . 'struct {', $indent);
 			self::addFieldsToStruct($src, $type, $withKnownClassNames, $indent + 1);
-			self::addLineToSrc($src, '}', $indent);
+			self::addLineToSrc($src, '} ' . ($indent > 0 ? self::getJSONTag($name) : '' ) , $indent);
 		}
 	}
 	private static function addFieldsToStruct(&$src, ServiceObjectType $type, &$withKnownClassNames, $indent)
 	{
 		foreach($type->props as $propName => $prop) {
-			$propName = ucfirst($propName);
-			$line =  $propName . ' ';
+			self::addComment($prop->phpDocEntry, $src, $indent);
+			//$propName = ucfirst($propName);
+			$line =  ucfirst($propName) . ' ';
 			if($prop->isArrayOf) {
 				$line .= '[]';
 			}
 			if(!$prop->isComplex()) {
-				$line .= self::plainGoType($prop->plainType);
+				$line .= self::plainGoType($prop->plainType) . ' ' . self::getJSONTag($propName);
 				self::addLineToSrc($src, $line, $indent);
 			} else {
 				self::addStruct($propName, $src, $prop, $withKnownClassNames, $indent + 1);
+			}
+		}
+	}
+	private static function getJSONTag($name)
+	{
+		return '`json:"' . $name . '"`';
+	}
+	private static function addComment($phpDocEntry, &$src, $indent)
+	{
+		if($phpDocEntry && !empty($phpDocEntry->comment)) {
+			foreach(explode(PHP_EOL, $phpDocEntry->comment) as $commentLine) {
+				self::addLineToSrc($src, '// ' . $commentLine, $indent);
 			}
 		}
 	}
