@@ -4,10 +4,11 @@ This foomo php module is designed to work with the [gofoomo Go package](https://
 
 ## Generate Go structs for php value objects
 
-´´´php
+This is a snippet for a foomo module class:
+
+```PHP
 
 // typically the make method of a foomo module class is a good place to generate code
-
 public static function make($target, \Foomo\Modules\MakeResult $result)
 {
     switch($target) {
@@ -33,6 +34,9 @@ public static function make($target, \Foomo\Modules\MakeResult $result)
             parent::make($target, $result);
     }
 }
-´´´
 
+
+?>
+
+```
 
