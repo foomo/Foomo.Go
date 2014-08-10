@@ -34,9 +34,5 @@ public static function make($target, \Foomo\Modules\MakeResult $result)
             parent::make($target, $result);
     }
 }
-
-
-?>
-
 ```
 
