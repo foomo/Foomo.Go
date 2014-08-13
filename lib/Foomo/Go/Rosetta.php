@@ -170,7 +170,7 @@ class Rosetta
 			case 'double': // really ?
 				return 'float64';
 			case 'float':  // really ?
-				return 'float32';
+				return 'float64';
 			case 'bool':
 			case 'boolean':
 				return 'bool';
