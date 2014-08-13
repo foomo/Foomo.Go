@@ -44,6 +44,47 @@ class Rosetta
 		return $recursions;
 	}
 
+	public static function getConstantsForVoClass($voClassName)
+	{
+		$refl = new ServiceObjectType($voClassName);
+		$goStructName = self::getGoStructName($voClassName);
+		$constants = array();
+		foreach($refl->constants as $name => $value) {
+			$constants[self::phpConstantNameToGoConstantNameForStructName($name, $goStructName)] = $value;
+		}
+		ksort($constants);
+		return $constants;
+	}
+	public static function phpConstantNameToGoConstantNameForStructName($phpConstantName, $goStructName)
+	{
+		$constantName = $goStructName;
+		$parts = explode('_', $phpConstantName);
+		foreach($parts as $part) {
+			$constantName .= ucfirst(strtolower($part));
+		}
+		return $constantName;
+	}
+	public static function goConstantsToSource(array $constants)
+	{
+		$src = 'const(';
+		foreach($constants as $goName => $phpValue) {
+			$src .= '	' . $goName . ' = ';
+			switch(gettype($phpValue)) {
+				case 'boolean':
+					$src .= $phpValue ? 'true' : 'false';
+					break;
+				case 'double':
+				case 'float':
+				case 'integer':
+					$src .= $phpValue;
+					break;
+				default:
+					$src .= '"' . str_replace([PHP_EOL], ['\\n'], addslashes((string) $phpValue)) . '"';
+			}
+			$src .= PHP_EOL;
+		}
+		return $src . ')';
+	}
 	public static function phpVoToGoStructSource($voClassName, array &$withKnownClassNames)
 	{
 		if(in_array($voClassName, $withKnownClassNames)) {

@@ -44,7 +44,14 @@ class Utils extends \Foomo\Modules\ModuleBase
 		$voClassNames = array_unique(array_merge($voClassNames, $recursions));
 		$packageParts = explode('/', $goPackage);
 		$src = 'package ' . end($packageParts) . PHP_EOL;
+
+
 		foreach($voClassNames as $voClassName) {
+			$constants = Rosetta::getConstantsForVoClass($voClassName);
+			if(!empty($constants)) {
+				$src .= '// constants from ' . $voClassName . PHP_EOL;
+				$src .= Rosetta::goConstantsToSource($constants) . PHP_EOL;
+			}
 			$src .= Rosetta::phpVoToGoStructSource($voClassName, $voClassNames) . PHP_EOL;
 		}
 		file_put_contents($goFile, $src);

@@ -51,4 +51,14 @@ class RosettaTest extends \PHPUnit_Framework_TestCase
 		//unlink($tmpFile);
 		$this->assertEquals(0, $cmd->exitStatus);
 	}
+	public function testConstants() {
+		$this->assertEquals(
+			$expected = [
+				'NestTreeTypeOak' => 'oak',
+				'NestTreeTypeSpruce' => 'spruce'
+			],
+			$actual = Rosetta::getConstantsForVoClass('Foomo\\Services\\Mock\\Nest')
+
+		);
+	}
 }
