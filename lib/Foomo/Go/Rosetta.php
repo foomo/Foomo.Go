@@ -158,6 +158,9 @@ class Rosetta
 	}
 	private static function plainGoType($plainType)
 	{
+		if(substr($plainType, -2) == "[]") {
+			$plainType = substr($plainType, 0, -2);
+		}
 		switch($plainType) {
 			case 'string':
 				return 'string';
