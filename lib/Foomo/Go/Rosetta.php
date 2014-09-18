@@ -125,6 +125,7 @@ class Rosetta
 	}
 	private static function addFieldsToStruct(&$src, ServiceObjectType $type, &$withKnownClassNames, $indent)
 	{
+		$annotatedRefl = new \ReflectionAnnotatedClass($type->type);
 		foreach($type->props as $propName => $prop) {
 			self::addComment($prop->phpDocEntry, $src, $indent);
 			//$propName = ucfirst($propName);
@@ -133,7 +134,15 @@ class Rosetta
 				$line .= '[]';
 			}
 			if(!$prop->isComplex()) {
-				$line .= self::plainGoType($prop->plainType) . ' ' . self::getJSONTag($propName);
+				// is there an annotation
+				$annotatedPropRefl = $annotatedRefl->getProperty($propName);
+				$annotationClass = __NAMESPACE__ . '\\GoType';
+				if($annotatedPropRefl && $annotatedPropRefl->hasAnnotation($annotationClass)) {
+					$t = $annotatedPropRefl->getAnnotation($annotationClass)->value;
+				} else {
+					$t = self::plainGoType($prop->plainType);
+				}
+				$line .= $t . ' ' . self::getJSONTag($propName);
 				self::addLineToSrc($src, $line, $indent);
 			} else {
 				self::addStruct($propName, $src, $prop, $withKnownClassNames, $indent + 1);
