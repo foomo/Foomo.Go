@@ -114,7 +114,7 @@ class Rosetta
 		if(in_array($type->type, $withKnownClassNames)) {
 			self::addLineToSrc(
 				$src,
-				$prefix . '*' . self::getGoStructName($type->type),
+				$prefix . '*' . self::getGoStructName($type->type) . ' ' . self::getJSONTag($name),
 				$indent
 			);
 		} else {
@@ -130,16 +130,17 @@ class Rosetta
 			self::addComment($prop->phpDocEntry, $src, $indent);
 			//$propName = ucfirst($propName);
 			$line =  ucfirst($propName) . ' ';
-			if($prop->isArrayOf) {
-				$line .= '[]';
-			}
-			if(!$prop->isComplex()) {
+			$annotatedPropRefl = $annotatedRefl->getProperty($propName);
+			$annotationClass = __NAMESPACE__ . '\\GoType';
+			$hasAnnotation = $annotatedPropRefl && $annotatedPropRefl->hasAnnotation($annotationClass);
+			if(!$prop->isComplex() || $hasAnnotation) {
 				// is there an annotation
-				$annotatedPropRefl = $annotatedRefl->getProperty($propName);
-				$annotationClass = __NAMESPACE__ . '\\GoType';
-				if($annotatedPropRefl && $annotatedPropRefl->hasAnnotation($annotationClass)) {
+				if($hasAnnotation) {
 					$t = $annotatedPropRefl->getAnnotation($annotationClass)->value;
 				} else {
+					if($prop->isArrayOf) {
+						$line .= '[]';
+					}
 					$t = self::plainGoType($prop->plainType);
 				}
 				$line .= $t . ' ' . self::getJSONTag($propName);
@@ -151,7 +152,10 @@ class Rosetta
 	}
 	private static function getJSONTag($name)
 	{
-		return '`json:"' . $name . '"`';
+		return
+			'`json:"' . $name . '" ' .
+			'bson:"' . $name . '"`'
+		;
 	}
 	private static function addComment($phpDocEntry, &$src, $indent)
 	{
