@@ -32,8 +32,9 @@ class Utils extends \Foomo\Modules\ModuleBase
 	 * @param string[] $voClassNames php class names
 	 * @param string $goPackage go package name
 	 * @param string $goPath go path
+	 * @param string[] $imports go imports
 	 */
-	public static function writeStructsForValueObjects(array $voClassNames, $goPackage, $goPath)
+	public static function writeStructsForValueObjects(array $voClassNames, $goPackage, $goPath, $imports = [])
 	{
 		$goFile = $goPath . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . $goPackage . DIRECTORY_SEPARATOR . 'value_objects.go';
 		Fs::getAbsoluteResource(Fs::TYPE_FOLDER, dirname($goFile))->tryCreate();
@@ -45,6 +46,15 @@ class Utils extends \Foomo\Modules\ModuleBase
 		$packageParts = explode('/', $goPackage);
 		$src = 'package ' . end($packageParts) . PHP_EOL;
 
+		if(count($imports) > 0) {
+			$src .= PHP_EOL .
+				'import(' . PHP_EOL
+			;
+			foreach($imports as $import) {
+				$src .= '	"' . $import . '"' . PHP_EOL;
+			}
+			$src .= ')' . PHP_EOL;
+		}
 
 		foreach($voClassNames as $voClassName) {
 			$constants = Rosetta::getConstantsForVoClass($voClassName);
