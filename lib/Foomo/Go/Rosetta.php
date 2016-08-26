@@ -118,7 +118,7 @@ class Rosetta
 				$indent
 			);
 		} else {
-			self::addLineToSrc($src, $prefix . 'struct {', $indent);
+			self::addLineToSrc($src, $prefix . ($indent > 0 ? '*' : '') . 'struct {', $indent);
 			self::addFieldsToStruct($src, $type, $withKnownClassNames, $indent + 1);
 			self::addLineToSrc($src, '} ' . ($indent > 0 ? self::getJSONTag($name) : '' ) , $indent);
 		}
