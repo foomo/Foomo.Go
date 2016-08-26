@@ -53,12 +53,15 @@ class RosettaTest extends \PHPUnit_Framework_TestCase
 	}
 	public function testConstants() {
 		$this->assertEquals(
-			$expected = [
-				'NestTreeTypeOak' => 'oak',
-				'NestTreeTypeSpruce' => 'spruce'
-			],
+			$expected =  [
+			    "NestTestBool" => true,
+                "NestTestEscapeString" => "\"FOO\nOK",
+                "NestTestFloat" => 1.2,
+                "NestTestInt" => 123,
+                "NestTreeTypeOak" => "oak",
+                "NestTreeTypeSpruce" => "spruce"
+            ],
 			$actual = Rosetta::getConstantsForVoClass('Foomo\\Services\\Mock\\Nest')
-
 		);
 	}
 }
