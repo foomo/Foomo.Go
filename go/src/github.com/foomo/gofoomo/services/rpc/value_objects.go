@@ -8,7 +8,7 @@ type MethodCall struct {
 	// name of the method to be called
 	Method string `json:"method" bson:"method"`
 	// the method call arguments
-	Arguments []struct {
+	Arguments []*struct {
 		Name  string      `json:"name" bson:"name"`
 		Value interface{} `json:"value" bson:"value"`
 	} `json:"arguments" bson:"arguments"`
