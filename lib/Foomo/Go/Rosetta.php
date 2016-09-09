@@ -97,7 +97,7 @@ class Rosetta
 			$withKnownClassNames = $cleanKnownClasses;
 		}
 		$type = new ServiceObjectType($voClassName);
-		$src = '// from php class ' . $type->type . PHP_EOL;
+		$src = '// '  . self::getGoStructName($voClassName) . ' from php class ' . $type->type . PHP_EOL;
 		self::addComment($type->phpDocEntry, $src, 0);
 		self::addStruct('type ' . self::getGoStructName($voClassName), $src, $type, $withKnownClassNames, 0);
 		$withKnownClassNames[] = $type->type;
