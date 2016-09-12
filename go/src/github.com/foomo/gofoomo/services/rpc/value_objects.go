@@ -1,6 +1,6 @@
 package rpc
 
-// from php class Foomo\Services\RPC\Protocol\Call\MethodCall
+// MethodCall from php class Foomo\Services\RPC\Protocol\Call\MethodCall
 // serializing a method call
 type MethodCall struct {
 	// id of the method call
@@ -14,7 +14,7 @@ type MethodCall struct {
 	} `json:"arguments" bson:"arguments"`
 }
 
-// from php class Foomo\Services\RPC\Protocol\Reply\MethodReply
+// MethodReply from php class Foomo\Services\RPC\Protocol\Reply\MethodReply
 // reply to a method call
 type MethodReply struct {
 	// id of the method call
