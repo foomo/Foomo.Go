@@ -85,7 +85,7 @@ class Rosetta
 		}
 		return $src . ')';
 	}
-	public static function phpVoToGoStructSource($voClassName, array &$withKnownClassNames)
+	public static function phpVoToGoStructSource($voClassName, array &$withKnownClassNames, array &$imports)
 	{
 		if(in_array($voClassName, $withKnownClassNames)) {
 			$cleanKnownClasses = [];
@@ -99,7 +99,7 @@ class Rosetta
 		$type = new ServiceObjectType($voClassName);
 		$src = '// '  . self::getGoStructName($voClassName) . ' from php class ' . $type->type . PHP_EOL;
 		self::addComment($type->phpDocEntry, $src, 0);
-		self::addStruct('type ' . self::getGoStructName($voClassName), $src, $type, $withKnownClassNames, 0);
+		self::addStruct('type ' . self::getGoStructName($voClassName), $src, $type, $withKnownClassNames, 0, $imports);
 		$withKnownClassNames[] = $type->type;
 		return $src;
 	}
@@ -108,7 +108,7 @@ class Rosetta
 		$parts = explode('\\', $className);
 		return end($parts);
 	}
-	private static function addStruct($name, &$src, ServiceObjectType $type, &$withKnownClassNames, $indent)
+	private static function addStruct($name, &$src, ServiceObjectType $type, &$withKnownClassNames, $indent, array &$imports)
 	{
 		$prefix = ($indent > 0 ? ucfirst($name) :  $name) . ' ' . ($type->isArrayOf ? '[]' : '');
 		if(in_array($type->type, $withKnownClassNames)) {
@@ -119,11 +119,11 @@ class Rosetta
 			);
 		} else {
 			self::addLineToSrc($src, $prefix . ($indent > 0 ? '*' : '') . 'struct {', $indent);
-			self::addFieldsToStruct($src, $type, $withKnownClassNames, $indent + 1);
+			self::addFieldsToStruct($src, $type, $withKnownClassNames, $indent + 1, $imports);
 			self::addLineToSrc($src, '} ' . ($indent > 0 ? self::getJSONTag($name) : '' ) , $indent);
 		}
 	}
-	private static function addFieldsToStruct(&$src, ServiceObjectType $type, &$withKnownClassNames, $indent)
+	private static function addFieldsToStruct(&$src, ServiceObjectType $type, &$withKnownClassNames, $indent, array &$imports)
 	{
 		$annotatedRefl = new \ReflectionAnnotatedClass($type->type);
 		foreach($type->props as $propName => $prop) {
@@ -131,27 +131,53 @@ class Rosetta
 			//$propName = ucfirst($propName);
 			$line =  ucfirst($propName) . ' ';
 			$annotatedPropRefl = $annotatedRefl->getProperty($propName);
-			$annotationClass = __NAMESPACE__ . '\\GoType';
-			$hasAnnotation = $annotatedPropRefl && $annotatedPropRefl->hasAnnotation($annotationClass);
-			if(!$prop->isComplex() || $hasAnnotation) {
+
+			$hasAnnotationType = $annotatedPropRefl && $annotatedPropRefl->hasAnnotation(self::GO_TYPE_CLASS_NAME);
+			$hasAnnotationImportType = $annotatedPropRefl && $annotatedPropRefl->hasAnnotation(self::GO_IMPORT_TYPE_CLASS_NAME);
+
+			$annotationImportTypeName = null;
+
+			if($hasAnnotationImportType) {
+				/* @var $importType GoImportType */
+				$importType = $annotatedPropRefl->getAnnotation(self::GO_IMPORT_TYPE_CLASS_NAME);
+				$annotationImportTypeName = $importType->name;
+				if(!in_array($importType->package, $imports)) {
+					$imports[] = $importType->package;
+				}
+			}
+
+			if(!$prop->isComplex() || $hasAnnotationType) {
 				// is there an annotation
-				if($hasAnnotation) {
-					$t = $annotatedPropRefl->getAnnotation($annotationClass)->value;
+				if($hasAnnotationType) {
+					$t = $annotatedPropRefl->getAnnotation(self::GO_TYPE_CLASS_NAME)->value;
+				} else if($hasAnnotationImportType) {
+					$t =  $annotationImportTypeName;
 				} else {
 					if($prop->isArrayOf) {
 						$line .= '[]';
 					}
 					$t = self::plainGoType($prop->plainType);
 				}
-				$line .= $t . ' ' . self::getJSONTag($propName);
+				$line .= $t . ' ' . self::getJSONTag($propName, $annotatedPropRefl);
 				self::addLineToSrc($src, $line, $indent);
 			} else {
-				self::addStruct($propName, $src, $prop, $withKnownClassNames, $indent + 1);
+				self::addStruct($propName, $src, $prop, $withKnownClassNames, $indent + 1, $imports);
 			}
 		}
 	}
-	private static function getJSONTag($name)
+
+
+	const GO_TAG_CLASS_NAME         = 'Foomo\\Go\\GoTag';
+	const GO_IMPORT_TYPE_CLASS_NAME = 'Foomo\\Go\\GoImportType';
+	const GO_TYPE_CLASS_NAME        = 'Foomo\\Go\\GoType';
+
+
+
+	private static function getJSONTag($name, $refl = null)
 	{
+		if(!is_null($refl) && $refl->hasAnnotation(self::GO_TAG_CLASS_NAME)) {
+			return '`' . $refl->getAnnotation(self::GO_TAG_CLASS_NAME)->value . '`';
+		}
 		return
 			'`json:"' . $name . '" ' .
 			'bson:"' . $name . '"`'

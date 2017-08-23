@@ -36,6 +36,7 @@ class Utils extends \Foomo\Modules\ModuleBase
 	 */
 	public static function writeStructsForValueObjects(array $voClassNames, $goPackage, $goPath, $imports = [])
 	{
+
 		$goFile = $goPath . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . $goPackage . DIRECTORY_SEPARATOR . 'value_objects.go';
 		Fs::getAbsoluteResource(Fs::TYPE_FOLDER, dirname($goFile))->tryCreate();
 		$recursions = [];
@@ -43,18 +44,8 @@ class Utils extends \Foomo\Modules\ModuleBase
 			$recursions = array_unique(array_merge($recursions, Rosetta::getRecursionsInType($voClassName)));
 		}
 		$voClassNames = array_unique(array_merge($voClassNames, $recursions));
-		$packageParts = explode('/', $goPackage);
-		$src = 'package ' . end($packageParts) . PHP_EOL;
 
-		if(count($imports) > 0) {
-			$src .= PHP_EOL .
-				'import(' . PHP_EOL
-			;
-			foreach($imports as $import) {
-				$src .= '	"' . $import . '"' . PHP_EOL;
-			}
-			$src .= ')' . PHP_EOL;
-		}
+		$src = "";
 
 		foreach($voClassNames as $voClassName) {
 			$constants = Rosetta::getConstantsForVoClass($voClassName);
@@ -62,9 +53,21 @@ class Utils extends \Foomo\Modules\ModuleBase
 				$src .= '// constants from ' . $voClassName . PHP_EOL;
 				$src .= Rosetta::goConstantsToSource($constants) . PHP_EOL;
 			}
-			$src .= Rosetta::phpVoToGoStructSource($voClassName, $voClassNames) . PHP_EOL;
+			$src .= Rosetta::phpVoToGoStructSource($voClassName, $voClassNames, $imports) . PHP_EOL;
 		}
-		file_put_contents($goFile, $src);
+		$packageParts = explode('/', $goPackage);
+		$head = 'package ' . end($packageParts) . PHP_EOL;
+
+		if(count($imports) > 0) {
+			$head .= PHP_EOL .
+				'import(' . PHP_EOL
+			;
+			foreach($imports as $import) {
+				$head .= '	"' . $import . '"' . PHP_EOL;
+			}
+			$head .= ')' . PHP_EOL;
+		}
+		file_put_contents($goFile, $head . PHP_EOL . PHP_EOL. $src);
 		$cmd = \Foomo\CliCall::create('gofmt', ['-w=true', $goFile]);
 		$cmd->execute();
 	}
