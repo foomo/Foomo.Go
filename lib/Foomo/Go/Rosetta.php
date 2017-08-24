@@ -146,7 +146,7 @@ class Rosetta
 				}
 			}
 
-			if(!$prop->isComplex() || $hasAnnotationType) {
+			if(!$prop->isComplex() || $hasAnnotationType || $hasAnnotationImportType) {
 				// is there an annotation
 				if($hasAnnotationType) {
 					$t = $annotatedPropRefl->getAnnotation(self::GO_TYPE_CLASS_NAME)->value;
